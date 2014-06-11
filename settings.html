@@ -1,0 +1,23 @@
+<html>
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <script src="common.js"></script>
+  <title>VK chatfree settings</title>
+ </head>
+ <body>
+  Вычитать из счетчика сообщений:
+  <br><br>
+  <form id="form">
+   <input id="hide_true" type="radio" name="hideChats" checked=true> все чаты, кроме выбранных
+   <br>
+   <select id="whiteList" multiple=true size=10>
+   </select>
+   <br><br>
+   <input id="hide_false" type="radio" name="hideChats"> выбранные чаты
+   <br>
+   <select id="blackList" multiple=true size=10>
+   </select>
+  </form>
+  <script src="settings.js"></script>
+ </body>
+</html>

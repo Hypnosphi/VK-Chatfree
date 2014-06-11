@@ -1,0 +1,23 @@
+{
+  "manifest_version": 2,
+
+  "name": "VK chatfree",
+  "version": "1.2",
+
+  "content_scripts": [
+    {
+      "matches": ["*://*.vk.com/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "options_page": "settings.html",
+  "web_accessible_resources": ["inject.js"],
+  "externally_connectable": {
+    "matches": ["*://*.vk.com/*"]
+  },
+  "permissions": ["*://*.vk.com/*", "tabs", "storage"],
+  "background": {
+    "persistent": false,
+    "scripts": ["common.js", "background.js"]
+  }
+}
