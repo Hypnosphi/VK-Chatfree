@@ -7,7 +7,7 @@ var chParams = {
 };
 vkapi('messages.getDialogs', params,
   function(data) {
-    for (var i in data.items) {
+    for (var i = 0, l = data.items.length; i < l; i++) {
       var item = data.items[i].message;
       if (item.chat_id) {
         var chat = {
@@ -47,9 +47,11 @@ ge('whiteList').onchange = function() {
   updateSettings();
 }
 ge('whiteList').onclick = function() {
-  ge('hide_true').checked = true;
-  settings.hideChats = true;
-  updateSettings();
+  if (!settings.hideChats) {
+    ge('hide_true').checked = true;
+    settings.hideChats = true;
+    updateSettings();
+  }
 }
 ge('blackList').onchange = function() {
   var selected = this.selectedOptions;
@@ -60,9 +62,11 @@ ge('blackList').onchange = function() {
   updateSettings();
 }
 ge('blackList').onclick = function() {
-  ge('hide_false').checked = true;
-  settings.hideChats = false;
-  updateSettings();
+  if (settings.hideChats) {
+    ge('hide_false').checked = true;
+    settings.hideChats = false;
+    updateSettings();
+  }
 }
 
 function ge(id) {
@@ -75,6 +79,7 @@ function append(chat, list) {
   option.id = 'chat' + chat.id;
   option.value = chat.id;
   option.innerText = chat.title;
+  //option.onmousedown = toggleSelection;
   if (isOn(chat.id, list)) {
     option.selected = true;
   }
@@ -82,10 +87,11 @@ function append(chat, list) {
 }
 
 function oldChats(chats) {
+  if (!chats.length) return;
   chParams.chat_ids = chats.join(',');
   vkapi('messages.getChat', chParams, 
     function(data) {
-      for (var i in data) {
+      for (var i = 0, l = data.length; i < l; i++) {
         var chat = {
           id: data[i].id,
           title: data[i].title
@@ -108,3 +114,15 @@ function updateSettings() {
   localStorage.settings = JSON.stringify(settings);
   chrome.runtime.sendMessage({message: 'updateSettings', settings: settings});
 }
+
+/*function toggleSelection(e) {
+  if (!e.shiftKey && !e.ctrlKey) {
+    if (this.selected) {
+      this.selected = false;
+    } else {
+      this.selected = true;
+    }
+    this.parentElement.focus();
+    return false;
+  }
+}*/

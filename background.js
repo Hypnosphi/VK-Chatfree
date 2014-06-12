@@ -1,18 +1,23 @@
+function sendUpdateSettings() {}
+function sendUpdateCounter() {}
 chrome.runtime.onMessageExternal.addListener(
   function(request, sender, sendResponse) {
     if (request.message == 'updateCounter') {
-      send = sendResponse;
+      sendUpdateCounter = sendResponse;
       var v = request.v
       params.count = Math.min(v + 5, 200);
       vkapi('messages.getDialogs', params, recalc);
-      return true;
+    } else if (request.message == 'waitForSettings') {
+      sendUpdateSettings = sendResponse;
     }
+    return true;
   });
 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     if (request.message == 'updateSettings') {
       settings = request.settings;
+      sendUpdateSettings();
     }
   });
 
@@ -23,13 +28,13 @@ function recalc(data) {
     vkapi('messages.getDialogs', params, recalc);
     return;
   }
-  for (var i in data.items) {
+  for (var i = 0, l = data.items.length; i < l; i++) {
     var chat_id = data.items[i].message.chat_id;
     if (chat_id && settings.hideChats ? !isOn(chat_id, 'whiteList') : isOn(chat_id, 'blackList')) {
       unread--;
     }
   }
-  send(unread);
+  sendUpdateCounter(unread);
 };
 
 chrome.runtime.onInstalled.addListener(

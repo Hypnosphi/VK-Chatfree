@@ -8,13 +8,19 @@ var params = {
   v: 5.21,
   access_token: localStorage.token
 };
+var authInProcess = false;
 if (!params.access_token) {
   getToken();
 }
-var authInProcess = false;
 
-function getToken(callback, args) {
+function getToken(callback, that, args) {
   if (authInProcess) {
+    if (callback) {
+      var timeout = window.setTimeout(function() {
+        args[1].access_token = localStorage.token;
+        vkapi.apply(that,args);
+      }, 1000);
+    }
     return;
   }
   authInProcess = true;
@@ -41,12 +47,17 @@ function getToken(callback, args) {
               if (tabId == authTab.id && changeInfo.url) {
                 var regex = new RegExp(pars.redirect_uri + '#access_token=([0-9a-f]*)');
                 params.access_token = changeInfo.url.match(regex)[1];
-                chrome.tabs.remove(tabId);
                 localStorage.token = params.access_token;
-                if (callback) {
-                  callback.apply(this, args);
-                }
+                chrome.tabs.remove(tabId);
+              }
+            });
+          chrome.tabs.onRemoved.addListener(
+            function(tabId, changeInfo, tab) {
+              if (tabId == authTab.id) {
                 authInProcess = false;
+                if (callback) {
+                  callback.apply(that, args);
+                }
               }
             });
         });
@@ -56,6 +67,11 @@ function getToken(callback, args) {
 function vkapi(method, params, callback, errorHandler) {
   var args = arguments;
   var that = this;
+  args[1].access_token = args[1].access_token || localStorage.token;
+  if (!params.access_token) {
+    getToken(vkapi, that, args);
+    return;
+  }
   var url = 'https://api.vk.com/method/' + method + '?';
   var pars = [];
   for (var key in params) {
@@ -67,11 +83,11 @@ function vkapi(method, params, callback, errorHandler) {
   xhr.responseType = 'json';
   xhr.onload = function(e) {
   	if (xhr.response.error) {
-  	  console.log(xhr.response.error);
+//  	  console.log(xhr.response.error);
   	  if (xhr.response.error.error_code == 5) {
-        getToken(vkapi, args);
+        getToken(vkapi, that, args);
   	  } else if (xhr.response.error.error_code == 6) {
-        var timeoutID = window.setTimeout(function() {
+        var timeout = window.setTimeout(function() {
           vkapi.apply(that,args);
         }, 1000);
       }
