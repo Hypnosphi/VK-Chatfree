@@ -20,5 +20,5 @@ function waitForSettings() {
     });
 }
 
-window.addEventListener('load', function() {handlePageCount('msg', 0);}, false);
+handlePageCount('msg', 0);
 waitForSettings();
