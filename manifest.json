@@ -6,14 +6,14 @@
 
   "content_scripts": [
     {
-      "matches": ["*://*.vk.com/*"],
-      "js": ["content.js"]
+      "matches": ["*://vk.com/*"],
+      "js": ["js/content.js"]
     }
   ],
   "options_page": "settings.html",
-  "web_accessible_resources": ["inject.js"],
+  "web_accessible_resources": ["js/inject.js"],
   "externally_connectable": {
-    "matches": ["*://*.vk.com/*"]
+    "matches": ["*://vk.com/*"]
   },
   "permissions": ["*://*.vk.com/*", "tabs", "storage"],
   "background": {
