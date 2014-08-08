@@ -18,7 +18,6 @@ jsonp = do ->
     idx = 0
     idx++ while callbackList[idx]?
     callbackList[idx] = ->
-      console.log "res#{idx}", _.now() 
       callback.apply this, arguments
 
       # remove the jsonp injection as we no longer need one
@@ -30,14 +29,12 @@ jsonp = do ->
     # make an injection
     scriptElement = window.document.createElement 'script'
     scriptElement.src = "#{url}?#{serialize params}"
-    console.log "req#{idx}", _.now()
     window.document.body.appendChild scriptElement
     return
 
 # vk API request
 vkApi = do ->
-  token = localStorage.token
-  v = 5.23
+  v = 5.24
   apiUrl = 'https://api.vk.com/method/'
   (method, params = {}, callback = ->) ->
     params.access_token ?= token
@@ -54,23 +51,34 @@ vkApi = do ->
       catch e
         console.log e
 
-# call stored checkCounter function, then filter the chats
+# check if chat is muted 
+isMuted = (disabledUntil) ->
+  disabledUntil and (disabledUntil is -1 or disabledUntil > _.now())
+
+# call stored getDialogProperties function, then filter the muted chats
 checkCounter = (callback = ->) ->
-  vkApi 'execute.checkCounter', {}, (response) ->
-    chatList = _.union (_.compact arr for arr in response.unread)
-    callback response.count - chatList.length
+  vkApi 'execute.getDialogProperties', {unread: 1, muted: 1}, (response) ->
+    muted = _.flatten(response.result).filter(isMuted)
+    callback response.count - muted.length
 
 # limit request rate
 throttledCheck = _.throttle(checkCounter, 340)
 
-# wrap the global handlePageCount function into count checker
-window.handlePageCount = _.wrap handlePageCount, (func, args...) ->
-  if args[0] is 'msg'
-    throttledCheck (count) ->
+init = ->
+  
+  # wrap the global handlePageCount function into count checker
+  window.handlePageCount = _.wrap handlePageCount, (func, args...) ->
+    if args[0] is 'msg'
+      throttledCheck (count) ->
         func 'msg', count
-  else 
-    # default behaviour
-    func.apply this, args
+    else 
 
-# initialize
-handlePageCount 'msg', 0
+      # default behaviour
+      func.apply this, args
+  handlePageCount 'msg', 0
+
+init() if token = localStorage.getItem 'token'
+
+
+
+
