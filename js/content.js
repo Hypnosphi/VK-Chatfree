@@ -2,16 +2,27 @@
 (function() {
   var addScript;
 
-  addScript = function(src, onload) {
+  addScript = function(src, script, onload) {
     var scriptElement;
-    scriptElement = window.document.createElement('script');
-    scriptElement.src = src;
-    scriptElement.onload = onload;
-    window.document.body.appendChild(scriptElement);
+    scriptElement = document.createElement('script');
+    if (src != null) {
+      scriptElement.src = src;
+    } else {
+      scriptElement.innerText = script;
+    }
+    if (onload != null) {
+      scriptElement.addEventListener('load', function(e) {
+        onload(e);
+        return document.body.removeChild(scriptElement);
+      });
+    }
+    return document.body.appendChild(scriptElement);
   };
 
-  addScript('//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js', function() {
-    return addScript(window.chrome.extension.getURL('js/inject.js'));
+  addScript('//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js', null, function() {
+    return addScript(chrome.extension.getURL('js/inject.js'), null, function() {
+      return addScript(null, "chatfree.auth('" + chrome.runtime.id + "')");
+    });
   });
 
 }).call(this);
