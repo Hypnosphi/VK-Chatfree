@@ -1,0 +1,37 @@
+// A stored vk API function written in VKScript
+// See vk.com/dev/execute for referense
+
+/// result is an array of arrays of message objects properties
+var result = [],
+    mutedCount = 0,
+    requestCount = 0,
+    params = {
+      offset: 0,
+      count: 200,
+      preview_length: 1,
+      unread: Args.unread
+    },
+
+// assume that we have at least 1 dialog to get
+    msgCount = 1,
+    response,
+    messages;
+
+// API requests are limited by 25 per stored function execution
+while (params.offset < msgCount && requestCount < 25) {
+  response = API.messages.getDialogs(params);
+  requestCount = requestCount + 1;
+  msgCount = response.count;
+  messages = response.items@.message;
+  if (Args.chats) {
+    result.push(messages@.chat_id);
+  } else if (Args.muted) {
+    result.push(messages@.push_settings@.disabled_until);
+  }
+  params.offset = params.offset + 200;
+}
+return {
+  result: result,
+  count: msgCount,
+  processed: params.offset
+};
